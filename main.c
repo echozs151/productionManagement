@@ -19,7 +19,7 @@ typedef struct
     int taskTime;
 } Nodeg;
 
-
+FILE *pFile;
 Nodeg nodesGlobal[200];
 int tempStation[80][80];
 int tempStation2[80][80];
@@ -216,7 +216,7 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 // Apply the rest rules. Output stations with nodes
 int findSolution(int m, int c,int rule,int nTask)
 {
-	printf("inside find solution");
+	//printf("inside find solution");
 
 	int totalStart=0;
 	int nextNodes[200];
@@ -411,12 +411,12 @@ void alpbe(int mmin,int mmax, char * array[])
     int idle = -2;
     m = mmin;
     int bm,bc;
-    printf("inside alpbe2 nTask:%s",array[0]);
+    //printf("inside alpbe2 nTask:%s",array[0]);
     // Place task times into taskTime array, starting from 0
     for(int i=1;i<=nTask;i++)
     {
 
-    	printf("i:%i",i);
+    	//printf("i:%i",i);
         taskTime[taskTimeCounter] = atoi(array[i]);
         taskTimeCounter++;
     }
@@ -497,7 +497,7 @@ void readFileLine(int option)
     size_t len = 0;
     ssize_t read;
     int lineCount =0;
-
+    char * previousGraph = "first";
 
 	printf("Parsing Station Ranges.. Rule: %i\n",setRule);
 	INPUT = "data-sets\\stations_range.txt";
@@ -518,7 +518,7 @@ void readFileLine(int option)
 
         int i = 0;
         char *p = strtok (line, " \t");
-        char *array[20];
+        char *array[1000];
 
 
         char *lineStore = &line;
@@ -535,7 +535,7 @@ void readFileLine(int option)
                     while (p != NULL)
                     {
                         array[i++] = p;
-                        p = strtok (NULL, " \t");
+                        p = strdup(strtok (NULL, " \t"));
                     }
                     //printf("%s \n",strupr(array[0]));
                     char graphDirectory[100] = "data-sets\\precedence graphs\\";
@@ -565,24 +565,34 @@ void readFileLine(int option)
                         //exit(EXIT_FAILURE);
 
                     //char *array2[800];
-                    char **array2;
-                    array2 = malloc(len * sizeof(char*));
-                    int ii = 0;
-                    while ((read2 = getline(&line2, &len2, fp2)) != -1) {
-                        //printf("%s",line2); // Print line individually
-                        //printf("%s", line2);
-                        array2[ii] = malloc(strlen(line2) + 1);
-                        strcpy(array2[ii], line2);
-                        ii++;
 
-                    }
+                    char** array2;
+                    array2 = malloc(len * sizeof(char*)+2048);
+                    int ii = 0;
+                    //if(!strcmp(graphName,previousGraph) ){
+						while ((read2 = getline(&line2, &len2, fp2)) != -1) {
+							//printf("%s",line2); // Print line individually
+							//printf("/t-->%s\n", line2);
+
+							//array2[ii] = malloc(strlen(line2) + 1);
+							//strcpy(array2[ii], line2);
+							array2[ii] = strdup(line2);
+							ii++;
+
+						}
+                    //}
+
+
                     //double totalNodes = atoi(array2[0]);
                     fclose(fp2);
                     if (line2)
 						free(line2);
-                    //printf("%s	%s", array[0],array);
+
+
                     //printf("before alpbe");
                     alpbe(atoi(array[1]),atoi(array[2]),array2);
+                    //printf("\nread2 finished..Free array2 with ii: %i Graph: %s\n",ii,previousGraph);
+
 
 
 
@@ -607,7 +617,12 @@ void readFileLine(int option)
 int main()
 {
 
+
+
 	setbuf(stdout, NULL);
+
+	pFile=fopen("myfile.txt", "a");
+
 	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n");
 	printf( "Option :");
     for(;;)
@@ -625,6 +640,7 @@ int main()
 
     }
 
+    fclose(pFile);
     return 0;
 
 }

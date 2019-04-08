@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
-
+#include <windows.h>
 //#include <C:\Users\ECHOZS\Desktop\data\bin\parse.c>
 
 typedef struct
@@ -16,31 +16,69 @@ typedef struct
     int totalPrev;
     int id;
 
+    int followingTasks;
+
     int taskTime;
 } Nodeg;
 
 FILE *pFile;
-Nodeg nodesGlobal[200];
+Nodeg nodesGlobal[600];
 int tempStation[80][80];
 int tempStation2[80][80];
 int setRule = 1;
 int idleTime = 0;
-char *INPUT = NULL;//"C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
+char *INPUT_DIR=NULL;//"C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
 
+int previousNode(int node,int followed,int jump)
+{
+	Nodeg nodeg = nodesGlobal[node-1];
+	int totalPrev = nodeg.totalPrev;
+
+	for(int i=0;i<totalPrev;i++)
+	{
+		previousNode(nodeg.prev[i],followed+1,followed-1);
+	}
+	if(followed > nodesGlobal[node-1].followingTasks)
+		nodesGlobal[node-1].followingTasks = followed;
+	printf("Reverse: Node %i Followed %i\n",node,followed);
+	return jump+1;
+}
+
+int nextNode(int node,int followed)
+{
+	Nodeg nodeg = nodesGlobal[node-1];
+
+	int totalNext = nodeg.totalNext;
+
+
+	if(totalNext == 0){
+		printf("reversing..from %i Followed: %i Jump: %i\n",node,followed-followed,followed);
+		nodesGlobal[node-1].followingTasks = 0;
+		previousNode(node,0,followed);
+	}
+
+	for(int i=0;i<totalNext;i++)
+	{
+		nextNode(nodeg.next[i],followed+1);
+	}
+
+	//printf("Node %i Followed %i\n",node,followed);
+	return followed;
+}
 
 void printStations()
 {
 	for(int i=0;i<80;i++)
 	{
 		if(tempStation2[i][0] != 0)
-			printf("S[%i]: ",i+1);
+			fprintf(pFile,"S[%i]: ",i+1);
 		for(int j=0;j<80;j++)
 		{
 			if(tempStation2[i][j]  != 0)
-				printf("%i ",tempStation2[i][j]);
+				fprintf(pFile,"%i ",tempStation2[i][j]);
 				//tempStation2[i][j] = tempStation[i][j];
 		}
-		printf("  ");
+		fprintf(pFile,"  ");
 	}
 }
 void setStations()
@@ -66,11 +104,10 @@ void setStations()
 // DONE
 Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
-	Nodeg nodesGlobal1[100];
     //printf("Building Map: NTask: %i\n",nTask);
     int i = 0,ii=0,j=0;
     int iji;
-    for(int ij=0;ij<200-1;ij++)
+    for(int ij=0;ij<600-1;ij++)
     {
         if(ij < nTask)
         {
@@ -85,6 +122,7 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
         }
         nodesGlobal[ij].totalNext = 0;
         nodesGlobal[ij].totalPrev = 0;
+        nodesGlobal[ij].followingTasks = 0;
 
         for(iji=0;iji<100;iji++)
         {
@@ -152,19 +190,6 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
 
         }
-        /*if(j != 0)
-        {
-        	int nexti = 0;
-
-			while(nodesGlobal[i-1].next[nexti] != 0)
-			{
-				//printf("Checking nodes[%i-1]: %i\n",i,nodes[i-1].next[nexti]);
-				nexti++;
-			}
-        }*/
-        //if(j != 0)
-        	//nodesGlobal[i-1].next[nexti] = j;
-        //printf("[%i] Final nodes[%i-1]: %i  j: %i\n",ii,ii,nodes[i-1].next[nexti],j);
 
         if(i == -1)
         	break;
@@ -174,40 +199,35 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
     // Iterate once more to set previous tasks
     int tempPrev = 0;
+    int totalPrev = 0;
+    int totalNext = 0;
+    int tempNextj=0;
     for(int p_i = 0;p_i<nTask;p_i++)
     {
+    	totalNext = 0;
+    	tempNextj=0;
     	tempPrev = 0;
-    	for(int p_j = 0;p_j<nTask;p_j++)
+    	totalPrev = 0;
+    	for(int p_j = 0;p_j<100;p_j++)
     	{
+
     		if(nodesGlobal[p_i].next[p_j] != 0)
     		{
+    			//tempNextj = nodesGlobal[p_i].next[totalNext];
+    			//totalPrev =
     			tempPrev = nodesGlobal[nodesGlobal[p_i].next[p_j]-1].totalPrev;
     			nodesGlobal[nodesGlobal[p_i].next[p_j]-1].prev[tempPrev] = nodesGlobal[p_i].id;
     			nodesGlobal[nodesGlobal[p_i].next[p_j]-1].totalPrev += 1;
-    			//tempPrev++;
     		}
+
     	}
     }
 
+    // Find following tasks
+    nextNode(1,0);
 
-    /*int boolHasNext = 0;
-    for(int testi=0;testi<nTask;testi++)
-    {
-    	boolHasNext = 0;
-    	for(int testj=0;testj<100;testj++)
-    	{
-    		if(nodesGlobal[testi].next[testj] != 0)
-    		{
-    			//printf("ID: %i Next: %i [%i][%i]\n",nodesGlobal[testi].id,nodesGlobal[testi].next[testj],testi,testj);
-    			boolHasNext = 1;
-    		}
-    		/*if(nodesGlobal[testi].prev[testj] != 0)
-    			printf("   Prev: %i \n",nodesGlobal[testi].prev[testj]);
 
-    	}
-    	if(boolHasNext == 0)
-    		printf("ID: %i Next: None \n",nodesGlobal[testi].id);
-    }*/
+
 
     Nodeg nodess[10];
     return nodess;
@@ -219,7 +239,7 @@ int findSolution(int m, int c,int rule,int nTask)
 	//printf("inside find solution");
 
 	int totalStart=0;
-	int nextNodes[200];
+	int nextNodes[600];
 	int totalNext = 0;
 	short firstRun = 1;
 	int counter = 0;
@@ -228,7 +248,7 @@ int findSolution(int m, int c,int rule,int nTask)
 	int stationCount = 0;
 	int totalStations=1;
 	int totalNodesInStation = 0;
-	int nodesDone[200];
+	int nodesDone[600];
 	int totalDone = 0;
 	short doneFound;
 	int totalIdle = 0;
@@ -243,14 +263,14 @@ int findSolution(int m, int c,int rule,int nTask)
 	}
 
 	// zero nextNodes
-	for(int zeroing=0;zeroing<200;zeroing++)
+	for(int zeroing=0;zeroing<600;zeroing++)
 	{
-		if(zeroing < 200)
+		if(zeroing < 600)
 			nextNodes[zeroing] = 0;
 		nodesDone[zeroing] = 0;
 	}
 
-	// The good stuff
+
 	min = 9999;
 	max = 0;
 	for(int i=0;i<nTask;i++)
@@ -278,7 +298,7 @@ int findSolution(int m, int c,int rule,int nTask)
 		}
 
 		short panicCounter = 0;
-		for(int i=0;i<200;i++)
+		for(int i=0;i<600;i++)
 		{
 			tempTasktime = nodesGlobal[nextNodes[i]-1].taskTime;
 			if(tempTasktime == 0)
@@ -401,7 +421,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
 
     int nTask = atoi(array[0]);
-    int taskTime[100];
+    int taskTime[2000];
     int taskTimeCounter = 0,taskTimeSum = 0,taskTimeMax = 0;
     int tempSolution = -1;
     int lbc,c;
@@ -480,9 +500,9 @@ void alpbe(int mmin,int mmax, char * array[])
 
     }
     //printf("Best Solution: m: %i  c: %i  idle: %i\n",bm,bc,idle);
-    printf("%i \t%i \t%i \tcpu \t ",idle,bm,bc);
+    fprintf(pFile,"%i \t%i \t%i \tcpu \t ",idle,bm,bc);
     printStations();
-    printf("\n");
+    fprintf(pFile,"\n");
 
 
 }
@@ -499,18 +519,18 @@ void readFileLine(int option)
     int lineCount =0;
     char * previousGraph = "first";
 
-	printf("Parsing Station Ranges.. Rule: %i\n",setRule);
-	INPUT = "data-sets\\stations_range.txt";
+	fprintf(pFile,"Parsing Station Ranges.. Rule: %i\n",setRule);
+	INPUT_DIR = "data-sets\\stations_range.txt";
 
 
 
 
-    fp = fopen(INPUT, "r");
+    fp = fopen(INPUT_DIR, "r");
     if (fp == NULL)
         exit(EXIT_FAILURE);
 
 
-    printf("Prec. graph \tmMin \tmMax\tIdle*\tm*\tc*\tCPU\tTasks\n");
+    fprintf(pFile,"Prec. graph \tmMin \tmMax\tIdle*\tm*\tc*\tCPU\tTasks\n");
     while ((read = getline(&line, &len, fp)) != -1) {
         //printf("Retrieved line of length %zu:\n", read);
     	//if(lineCount>=1)
@@ -518,7 +538,7 @@ void readFileLine(int option)
 
         int i = 0;
         char *p = strtok (line, " \t");
-        char *array[1000];
+        char *array[2000];
 
 
         char *lineStore = &line;
@@ -547,7 +567,8 @@ void readFileLine(int option)
 
                     //char *graphDirectory = strcat(,graphName);
                     //printf("%s\n",graphDirectory); // Prints the path of the graph data
-                    printf("%s ",array[0]);
+                    printf("%s\n",array[0]);
+                    fprintf(pFile,"%s ",array[0]);
                     FILE * fp2;
                     char * line2 = NULL;
                     size_t len2 = 0;
@@ -556,11 +577,11 @@ void readFileLine(int option)
                     fp2 = fopen(graphDirectory, "r");
                     if (fp2 == NULL)
                     {
-                    	printf("\n");
+                    	fprintf(pFile,"\n");
                         continue;
                     }else
                     {
-                    	printf("\t%i\t %i\t",atoi(array[1]),atoi(array[2]));
+                    	fprintf(pFile,"\t%i\t %i\t",atoi(array[1]),atoi(array[2]));
                     }
                         //exit(EXIT_FAILURE);
 
@@ -601,9 +622,10 @@ void readFileLine(int option)
             //char *precedenceGraphName = array[0];
 
         lineCount++;
+        //sleep(1);
         //read only 5 lines for debug
-        /*if(lineCount>5)
-            break;*/
+        if(lineCount>5)
+            break;
     }
 
     fclose(fp);
@@ -621,13 +643,13 @@ int main()
 
 	setbuf(stdout, NULL);
 
-	pFile=fopen("myfile.txt", "a");
+
 
 	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n");
 	printf( "Option :");
     for(;;)
     {
-
+    	pFile=fopen("myfile.txt", "a");
         int opt;
 
         scanf("%d",&opt);
@@ -635,12 +657,12 @@ int main()
 
         readFileLine(opt);
         getchar();
-
-        printf( "Option :");
+        fclose(pFile);
+        printf( "\nOption :");
 
     }
 
-    fclose(pFile);
+
     return 0;
 
 }

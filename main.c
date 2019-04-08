@@ -28,7 +28,10 @@ int tempStation2[80][80];
 int setRule = 1;
 int idleTime = 0;
 char *INPUT_DIR=NULL;//"C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
+char previousGraph[100];
+char currentGraph[100];
 
+short firstBuild = 1;
 int previousNode(int node,int followed,int jump)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
@@ -40,7 +43,7 @@ int previousNode(int node,int followed,int jump)
 	}
 	if(followed > nodesGlobal[node-1].followingTasks)
 		nodesGlobal[node-1].followingTasks = followed;
-	printf("Reverse: Node %i Followed %i\n",node,followed);
+	//printf("Reverse: Node %i Followed %i\n",node,followed);
 	return jump+1;
 }
 
@@ -52,7 +55,7 @@ int nextNode(int node,int followed)
 
 
 	if(totalNext == 0){
-		printf("reversing..from %i Followed: %i Jump: %i\n",node,followed-followed,followed);
+		//printf("reversing..from %i Followed: %i Jump: %i\n",node,followed-followed,followed);
 		nodesGlobal[node-1].followingTasks = 0;
 		previousNode(node,0,followed);
 	}
@@ -254,6 +257,8 @@ int findSolution(int m, int c,int rule,int nTask)
 	int totalIdle = 0;
 	int tempCycle = 0;
 	int nextNodePick;
+	int mftNode,lftNode,ft,mft,lft;
+	int miftNode,liftNode,tn,mift,lift;
 	for(int i=0;i<80;i++)
 	{
 		for(int j=0;j<80;j++)
@@ -273,6 +278,10 @@ int findSolution(int m, int c,int rule,int nTask)
 
 	min = 9999;
 	max = 0;
+	lft = 9999;
+	mft = 0;
+	lift = 9999;
+	mift = 0;
 	for(int i=0;i<nTask;i++)
 	{
 		if(nodesGlobal[i].totalPrev == 0)
@@ -289,6 +298,10 @@ int findSolution(int m, int c,int rule,int nTask)
 	{
 		min = 9999;
 		max = 0;
+		lft = 9999;
+		mft = 0;
+		lift = 9999;
+		mift = 0;
 		doneFound = 0;
 		if(firstRun == 1)
 		{
@@ -301,6 +314,8 @@ int findSolution(int m, int c,int rule,int nTask)
 		for(int i=0;i<600;i++)
 		{
 			tempTasktime = nodesGlobal[nextNodes[i]-1].taskTime;
+			ft = nodesGlobal[nextNodes[i]-1].followingTasks;
+			tn = nodesGlobal[nextNodes[i]-1].totalNext;
 			if(tempTasktime == 0)
 			{
 				panicCounter++;
@@ -319,6 +334,27 @@ int findSolution(int m, int c,int rule,int nTask)
 				max = tempTasktime;
 				maxNode = nodesGlobal[nextNodes[i]-1].id;
 			}
+			if(ft >= mft)
+			{
+				mft = ft;
+				mftNode = nodesGlobal[nextNodes[i]-1].id;
+			}
+			if(ft < lft)
+			{
+				lft = ft;
+				lftNode = nodesGlobal[nextNodes[i]-1].id;
+			}
+			if(tn > mift)
+			{
+				mift = tn;
+				miftNode = nodesGlobal[nextNodes[i]-1].id;
+
+			}
+			if(tn < lift)
+			{
+				lift = tn;
+				liftNode = nodesGlobal[nextNodes[i]-1].id;
+			}
 		}
 		int ii=0;
 
@@ -327,6 +363,14 @@ int findSolution(int m, int c,int rule,int nTask)
 			nextNodePick = maxNode;
 		else if(setRule == 2)
 			nextNodePick = minNode;
+		else if(setRule == 3)
+			nextNodePick = mftNode;
+		else if(setRule == 4)
+			nextNodePick = lftNode;
+		else if(setRule == 5)
+			nextNodePick = miftNode;
+		else if(setRule == 6)
+			nextNodePick = liftNode;
 		for(int k =0;k<nTask;k++)
 		{
 			if(nextNodes[k] == nextNodePick)
@@ -442,7 +486,13 @@ void alpbe(int mmin,int mmax, char * array[])
     }
     taskTime[taskTimeCounter] = -1;
     taskTimeCounter =0;
-    buildMap(array,taskTime,nTask);
+    if(strcmp(currentGraph,previousGraph) || firstBuild == 1)
+    {
+    	buildMap(array,taskTime,nTask);
+    	firstBuild = 0;
+    }
+    strcpy(previousGraph,currentGraph);
+
     while(taskTime[taskTimeCounter] != -1)
     {
         //printf("Task Time[%i]: %i",taskTimeCounter,taskTime[taskTimeCounter]);
@@ -565,9 +615,11 @@ void readFileLine(int option)
                     strcat(graphName,".IN2");
                     strcat(graphDirectory,graphName);
 
+                    strcpy(currentGraph,array[0]);
+
                     //char *graphDirectory = strcat(,graphName);
                     //printf("%s\n",graphDirectory); // Prints the path of the graph data
-                    printf("%s\n",array[0]);
+                    printf("%s\t",array[0]);
                     fprintf(pFile,"%s ",array[0]);
                     FILE * fp2;
                     char * line2 = NULL;
@@ -578,10 +630,12 @@ void readFileLine(int option)
                     if (fp2 == NULL)
                     {
                     	fprintf(pFile,"\n");
+                    	printf("FAILED\n");
                         continue;
                     }else
                     {
                     	fprintf(pFile,"\t%i\t %i\t",atoi(array[1]),atoi(array[2]));
+                    	printf("OK\n");
                     }
                         //exit(EXIT_FAILURE);
 
@@ -624,8 +678,8 @@ void readFileLine(int option)
         lineCount++;
         //sleep(1);
         //read only 5 lines for debug
-        if(lineCount>5)
-            break;
+        /*if(lineCount>5)
+            break;*/
     }
 
     fclose(fp);
@@ -645,15 +699,27 @@ int main()
 
 
 
-	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n");
+	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n5. MIFT\n6. LIFT\n");
 	printf( "Option :");
     for(;;)
     {
-    	pFile=fopen("myfile.txt", "a");
+
         int opt;
 
         scanf("%d",&opt);
         setRule = opt;
+        if(setRule == 1)
+        	pFile=fopen("LTT.txt", "a");
+        else if(setRule == 2)
+			pFile=fopen("STT.txt", "a");
+        else if(setRule == 3)
+			pFile=fopen("MFT.txt", "a");
+        else if(setRule == 4)
+			pFile=fopen("LFT.txt", "a");
+        else if(setRule == 5)
+			pFile=fopen("MIFT.txt", "a");
+        else if(setRule == 6)
+			pFile=fopen("LIFT.txt", "a");
 
         readFileLine(opt);
         getchar();

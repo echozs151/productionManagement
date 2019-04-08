@@ -1,0 +1,9 @@
+Parsing Station Ranges.. Rule: 3
+Prec. graph 	mMin 	mMax	Idle*	m*	c*	CPU	Tasks
+MERTENS 	3	 5	4 	3 	11 	cpu 	 S[1]: 1 2 5   S[2]: 4 6   S[3]: 7 3                                                                                                                                                             
+MERTENS 	4	 5	7 	4 	9 	cpu 	 S[1]: 1 2   S[2]: 5 4   S[3]: 6   S[4]: 7 3                                                                                                                                                           
+BOWMAN 
+BOWMAN 
+JAESCHKE 	3	 7	3 	4 	10 	cpu 	 S[1]: 1 3   S[2]: 2 4   S[3]: 5 7 6   S[4]: 8 9                                                                                                                                                           
+JAESCHKE 	4	 7	3 	4 	10 	cpu 	 S[1]: 1 3   S[2]: 2 4   S[3]: 5 7 6   S[4]: 8 9                                                                                                                                                           
+JAESCHKE 	5	 7	8 	5 	9 	cpu 	 S[1]: 1 3   S[2]: 2 4   S[3]: 5 7   S[4]: 6 8   S[5]: 9                                                                                                                                                         

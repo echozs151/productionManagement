@@ -30,8 +30,10 @@ int idleTime = 0;
 char *INPUT_DIR=NULL;//"C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
 char previousGraph[100];
 char currentGraph[100];
-
+float xTable[70];
+float xTable2[70];
 short firstBuild = 1;
+int globalM,globalC;
 int previousNode(int node,int followed,int jump)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
@@ -68,6 +70,51 @@ int nextNode(int node,int followed)
 	//printf("Node %i Followed %i\n",node,followed);
 	return followed;
 }
+
+void vns(int mmin,int mmax, char * array[])
+{
+	int r;
+	int k;
+	int totalJobs,i;
+	int nm,nc;
+	int counter= 0;
+	int nTask = atoi(array[0]);
+	int kmax = nTask;
+	totalJobs = 10;
+	// step 1
+	for(i=0;i<=totalJobs;i++)
+	{
+		int num = (rand() %  (100 + 1));
+		float randomValue =  (float)num / 100;
+		xTable[i] = randomValue;
+		if(i==totalJobs)
+			xTable[i] = -1;
+	}
+	i = 0;
+	//srand(time(0));
+	while(xTable[i] != -1)
+	{
+		printf("Num: %i %f\n",i,xTable[i]);
+		i++;
+	}
+
+
+	// step 2
+	while(counter < totalJobs)
+	{
+
+		alpbe(mmin,mmax,array);
+		k = 1;
+		while(k != kmax)
+		{
+
+
+		}
+		counter++;
+	}
+
+}
+
 
 void printStations()
 {
@@ -227,7 +274,8 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
     }
 
     // Find following tasks
-    nextNode(1,0);
+    if(setRule == 3 || setRule == 4)
+    	nextNode(1,0);
 
 
 
@@ -259,6 +307,8 @@ int findSolution(int m, int c,int rule,int nTask)
 	int nextNodePick;
 	int mftNode,lftNode,ft,mft,lft;
 	int miftNode,liftNode,tn,mift,lift;
+	float highPriority=0;
+	int highPriorityNode;
 	for(int i=0;i<80;i++)
 	{
 		for(int j=0;j<80;j++)
@@ -355,6 +405,15 @@ int findSolution(int m, int c,int rule,int nTask)
 				lift = tn;
 				liftNode = nodesGlobal[nextNodes[i]-1].id;
 			}
+
+			if(setRule == 8 || i < nTask)
+			{
+				if(highPriority < xTable[nodesGlobal[nextNodes[i]-1].id - 1])
+				{
+					highPriority = xTable[nodesGlobal[nextNodes[i]-1].id - 1];
+					highPriorityNode = nodesGlobal[nextNodes[i]-1].id;
+				}
+			}
 		}
 		int ii=0;
 
@@ -371,6 +430,8 @@ int findSolution(int m, int c,int rule,int nTask)
 			nextNodePick = miftNode;
 		else if(setRule == 6)
 			nextNodePick = liftNode;
+		else if(setRule == 8)
+			nextNodePick = highPriority;
 		for(int k =0;k<nTask;k++)
 		{
 			if(nextNodes[k] == nextNodePick)
@@ -531,6 +592,8 @@ void alpbe(int mmin,int mmax, char * array[])
 
 		//printf("Found solution: m: %i  c: %i  idle: %i\n",i,c,tempSolution);
         // Print out only best solution
+
+        // idle == -2 is the first iteration needed to initialize
 		if(idle == -2)
 		{
        		idle = tempSolution;
@@ -543,6 +606,8 @@ void alpbe(int mmin,int mmax, char * array[])
 			idle = tempSolution;
 			bm = i;
 			bc = c;
+			globalM = bm;
+			globalC = bc;
 			setStations();
 		}
 
@@ -665,7 +730,11 @@ void readFileLine(int option)
 
 
                     //printf("before alpbe");
-                    alpbe(atoi(array[1]),atoi(array[2]),array2);
+                    if(setRule != 6)
+                    	alpbe(atoi(array[1]),atoi(array[2]),array2);
+                    else{
+                    	vns(atoi(array[1]),atoi(array[2]),array2);
+                    }
                     //printf("\nread2 finished..Free array2 with ii: %i Graph: %s\n",ii,previousGraph);
 
 
@@ -699,7 +768,7 @@ int main()
 
 
 
-	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n5. MIFT\n6. LIFT\n");
+	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n5. MIFT\n6. LIFT\n8. VNS\n");
 	printf( "Option :");
     for(;;)
     {
@@ -720,6 +789,8 @@ int main()
 			pFile=fopen("MIFT.txt", "a");
         else if(setRule == 6)
 			pFile=fopen("LIFT.txt", "a");
+        else if(setRule == 8)
+			pFile=fopen("VNS.txt", "a");
 
         readFileLine(opt);
         getchar();

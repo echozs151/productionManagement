@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <windows.h>
+#include <time.h>
+
 //#include <C:\Users\ECHOZS\Desktop\data\bin\parse.c>
 
 typedef struct
@@ -34,6 +36,7 @@ float xTable[70];
 float xTable2[70];
 short firstBuild = 1;
 int globalM,globalC;
+
 int previousNode(int node,int followed,int jump)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
@@ -309,6 +312,7 @@ int findSolution(int m, int c,int rule,int nTask)
 	int miftNode,liftNode,tn,mift,lift;
 	float highPriority=0;
 	int highPriorityNode;
+
 	for(int i=0;i<80;i++)
 	{
 		for(int j=0;j<80;j++)
@@ -536,6 +540,11 @@ void alpbe(int mmin,int mmax, char * array[])
     int idle = -2;
     m = mmin;
     int bm,bc;
+    double bcpu;
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     //printf("inside alpbe2 nTask:%s",array[0]);
     // Place task times into taskTime array, starting from 0
     for(int i=1;i<=nTask;i++)
@@ -614,8 +623,10 @@ void alpbe(int mmin,int mmax, char * array[])
 
 
     }
+    end = clock();
+    bcpu = ((double) (end - start)) / CLOCKS_PER_SEC;
     //printf("Best Solution: m: %i  c: %i  idle: %i\n",bm,bc,idle);
-    fprintf(pFile,"%i \t%i \t%i \tcpu \t ",idle,bm,bc);
+    fprintf(pFile,"%i \t%i \t%i \t%.4f \t ",idle,bm,bc,bcpu);
     printStations();
     fprintf(pFile,"\n");
 

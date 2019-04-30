@@ -35,7 +35,8 @@ char currentGraph[100];
 float xTable[70];
 float xTable2[70];
 short firstBuild = 1;
-int globalM,globalC;
+int globalM,globalC,globalI;
+short x2Flag = 0;
 
 int previousNode(int node,int followed,int jump)
 {
@@ -73,51 +74,6 @@ int nextNode(int node,int followed)
 	//printf("Node %i Followed %i\n",node,followed);
 	return followed;
 }
-
-void vns(int mmin,int mmax, char * array[])
-{
-	int r;
-	int k;
-	int totalJobs,i;
-	int nm,nc;
-	int counter= 0;
-	int nTask = atoi(array[0]);
-	int kmax = nTask;
-	totalJobs = 10;
-	// step 1
-	for(i=0;i<=totalJobs;i++)
-	{
-		int num = (rand() %  (100 + 1));
-		float randomValue =  (float)num / 100;
-		xTable[i] = randomValue;
-		if(i==totalJobs)
-			xTable[i] = -1;
-	}
-	i = 0;
-	//srand(time(0));
-	while(xTable[i] != -1)
-	{
-		printf("Num: %i %f\n",i,xTable[i]);
-		i++;
-	}
-
-
-	// step 2
-	while(counter < totalJobs)
-	{
-
-		alpbe(mmin,mmax,array);
-		k = 1;
-		while(k != kmax)
-		{
-
-
-		}
-		counter++;
-	}
-
-}
-
 
 void printStations()
 {
@@ -291,7 +247,7 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 int findSolution(int m, int c,int rule,int nTask)
 {
 	//printf("inside find solution");
-
+	float xPrevious = 1;
 	int totalStart=0;
 	int nextNodes[600];
 	int totalNext = 0;
@@ -357,6 +313,7 @@ int findSolution(int m, int c,int rule,int nTask)
 		lift = 9999;
 		mift = 0;
 		doneFound = 0;
+		highPriority = 0;
 		if(firstRun == 1)
 		{
 			firstRun = 0;
@@ -412,13 +369,26 @@ int findSolution(int m, int c,int rule,int nTask)
 
 			if(setRule == 8 || i < nTask)
 			{
-				if(highPriority < xTable[nodesGlobal[nextNodes[i]-1].id - 1])
+				if(x2Flag == 0){
+					if(highPriority < xTable[nodesGlobal[nextNodes[i]-1].id - 1] && xPrevious != xTable[nodesGlobal[nextNodes[i]-1].id - 1])
+					{
+						highPriority = xTable[nodesGlobal[nextNodes[i]-1].id - 1];
+						highPriorityNode = nodesGlobal[nextNodes[i]-1].id;
+						xPrevious = highPriority;
+					}
+				}
+				else if(x2Flag == 1)
 				{
-					highPriority = xTable[nodesGlobal[nextNodes[i]-1].id - 1];
-					highPriorityNode = nodesGlobal[nextNodes[i]-1].id;
+					if(highPriority < xTable2[nodesGlobal[nextNodes[i]-1].id - 1] && xPrevious != xTable2[nodesGlobal[nextNodes[i]-1].id - 1])
+					{
+						highPriority = xTable2[nodesGlobal[nextNodes[i]-1].id - 1];
+						highPriorityNode = nodesGlobal[nextNodes[i]-1].id;
+						xPrevious = highPriority;
+					}
 				}
 			}
 		}
+		//printf("Next node priority: %.2f Total Nodes: %i Total Done: %i\n",highPriority,nTask,totalDone);
 		int ii=0;
 
 		// Add the chosen node into done, remove it from nextNodes, add to station and calculate if need new station
@@ -435,7 +405,12 @@ int findSolution(int m, int c,int rule,int nTask)
 		else if(setRule == 6)
 			nextNodePick = liftNode;
 		else if(setRule == 8)
-			nextNodePick = highPriority;
+		{
+			nextNodePick = highPriorityNode;
+			xPrevious = highPriority;
+
+
+		}
 		for(int k =0;k<nTask;k++)
 		{
 			if(nextNodes[k] == nextNodePick)
@@ -608,6 +583,9 @@ void alpbe(int mmin,int mmax, char * array[])
        		idle = tempSolution;
        		bm = i;
 			bc = c;
+			globalM = bm;
+			globalC = bc;
+			globalI = idle;
 			setStations();
 		}
 		if(idle > tempSolution)
@@ -617,6 +595,7 @@ void alpbe(int mmin,int mmax, char * array[])
 			bc = c;
 			globalM = bm;
 			globalC = bc;
+			globalI = idle;
 			setStations();
 		}
 
@@ -630,6 +609,132 @@ void alpbe(int mmin,int mmax, char * array[])
     printStations();
     fprintf(pFile,"\n");
 
+
+}
+
+void alg2opt()
+{
+
+}
+
+void sh(int totalJobs)
+{
+	float head = xTable2[0];
+	float tail = xTable2[totalJobs-1];
+	for(int i=0;i<totalJobs;i++)
+	{
+		if(i+1 != totalJobs)
+		{
+			xTable2[i+1] = xTable2[i];
+		}else{
+			xTable2[0] = tail;
+		}
+
+	}
+}
+
+void ex(int totalJobs)
+{
+	// Change priorities of 2 tasks randomly
+	int ranNum1 = rand() / (RAND_MAX / (totalJobs) + 1);
+	int ranNum2 = rand() / (RAND_MAX / (totalJobs) + 1);
+	while(ranNum1 == ranNum2)
+		ranNum2 = rand() / (RAND_MAX / (totalJobs) + 1);
+
+	float tempPrio = xTable2[ranNum1];
+	xTable2[ranNum1] = xTable2[ranNum2];
+	xTable2[ranNum2] = tempPrio;
+
+
+}
+
+void processVnsTable(int totalJobs) {
+	// ex(x) sh(x) ex(x) sh(x) sh(x) = x1
+	// 2-opt(x1) = x2
+
+	ex(totalJobs);
+	sh(totalJobs);
+	ex(totalJobs);
+	sh(totalJobs);
+	sh(totalJobs);
+	alg2opt(totalJobs);
+
+}
+
+
+void vns(int mmin,int mmax, char * array[])
+{
+
+	printf("Mmin: %i  Mmax: %i\n",mmin,mmax);
+
+	int r;
+	int k;
+	int totalJobs,i;
+	int nm,nc,ni;
+	int counter= 0;
+	int nTask = atoi(array[0]);
+	int kmax = nTask;
+	totalJobs = nTask;
+	ni = 9999;
+	// step 1
+	for(i=0;i<=totalJobs;i++)
+	{
+		//int num = (rand() %  (100 + 1));
+
+		int ranNum = 1 +rand() / (RAND_MAX / (100 -1 + 1) + 1);
+		float randomValue =  (float)ranNum / 100;
+		xTable[i] = randomValue;
+		xTable2[i] = randomValue;
+		if(i==totalJobs){
+			xTable[i] = -1;
+			xTable2[i] = -1;
+		}
+	}
+	i = 0;
+	//srand(time(0));
+
+	// Inspect x
+	while(xTable[i] != -1)
+	{
+		//printf("Num: %i %.2f\n",i,xTable[i]);
+		i++;
+	}
+
+
+	// step 2
+	while(counter < totalJobs)
+	{
+		// step 3
+		int ranNum = mmin +rand() / (RAND_MAX / (mmax -mmin + 1) + 1);
+		//printf("%i - %i Random: %i\n",mmin,mmax,ranNum);
+
+		// step 4
+		alpbe(mmin,mmax,array);
+		k = 1;
+		while(k != kmax)
+		{
+			x2Flag = 1;
+			alpbe(mmin,mmax,array);
+			x2Flag = 0;
+			// 7.4
+			if(ni > globalI)
+			{
+				int copyArr;
+				while(xTable2[copyArr] != -1)
+				{
+					xTable[copyArr] = xTable2[copyArr];
+					copyArr++;
+				}
+				k = 1;
+			}else{
+				k++;
+			}
+
+			break;
+
+		}
+		counter++;
+	}
 
 }
 
@@ -741,7 +846,7 @@ void readFileLine(int option)
 
 
                     //printf("before alpbe");
-                    if(setRule != 6)
+                    if(setRule != 8)
                     	alpbe(atoi(array[1]),atoi(array[2]),array2);
                     else{
                     	vns(atoi(array[1]),atoi(array[2]),array2);
@@ -784,7 +889,7 @@ int main()
     for(;;)
     {
 
-        int opt;
+        int opt = 6;
 
         scanf("%d",&opt);
         setRule = opt;

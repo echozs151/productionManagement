@@ -5,6 +5,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <windows.h>
+#include <time.h>
 
 //#include <C:\Users\ECHOZS\Desktop\data\bin\parse.c>
 
@@ -16,16 +18,105 @@ typedef struct
     int totalPrev;
     int id;
 
+    int followingTasks;
+
     int taskTime;
 } Nodeg;
 
 FILE *pFile;
-Nodeg nodesGlobal[200];
+Nodeg nodesGlobal[600];
 int tempStation[80][80];
 int tempStation2[80][80];
 int setRule = 1;
 int idleTime = 0;
-char *INPUT = NULL;//"C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
+char *INPUT_DIR=NULL;//"C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
+char previousGraph[100];
+char currentGraph[100];
+float xTable[70];
+float xTable2[70];
+short firstBuild = 1;
+int globalM,globalC;
+
+int previousNode(int node,int followed,int jump)
+{
+	Nodeg nodeg = nodesGlobal[node-1];
+	int totalPrev = nodeg.totalPrev;
+
+	for(int i=0;i<totalPrev;i++)
+	{
+		previousNode(nodeg.prev[i],followed+1,followed-1);
+	}
+	if(followed > nodesGlobal[node-1].followingTasks)
+		nodesGlobal[node-1].followingTasks = followed;
+	//printf("Reverse: Node %i Followed %i\n",node,followed);
+	return jump+1;
+}
+
+int nextNode(int node,int followed)
+{
+	Nodeg nodeg = nodesGlobal[node-1];
+
+	int totalNext = nodeg.totalNext;
+
+
+	if(totalNext == 0){
+		//printf("reversing..from %i Followed: %i Jump: %i\n",node,followed-followed,followed);
+		nodesGlobal[node-1].followingTasks = 0;
+		previousNode(node,0,followed);
+	}
+
+	for(int i=0;i<totalNext;i++)
+	{
+		nextNode(nodeg.next[i],followed+1);
+	}
+
+	//printf("Node %i Followed %i\n",node,followed);
+	return followed;
+}
+
+void vns(int mmin,int mmax, char * array[])
+{
+	int r;
+	int k;
+	int totalJobs,i;
+	int nm,nc;
+	int counter= 0;
+	int nTask = atoi(array[0]);
+	int kmax = nTask;
+	totalJobs = 10;
+	// step 1
+	for(i=0;i<=totalJobs;i++)
+	{
+		int num = (rand() %  (100 + 1));
+		float randomValue =  (float)num / 100;
+		xTable[i] = randomValue;
+		if(i==totalJobs)
+			xTable[i] = -1;
+	}
+	i = 0;
+	//srand(time(0));
+	while(xTable[i] != -1)
+	{
+		printf("Num: %i %f\n",i,xTable[i]);
+		i++;
+	}
+
+
+	// step 2
+	while(counter < totalJobs)
+	{
+
+		alpbe(mmin,mmax,array);
+		k = 1;
+		while(k != kmax)
+		{
+
+
+		}
+		counter++;
+	}
+
+}
 
 
 void printStations()
@@ -33,14 +124,14 @@ void printStations()
 	for(int i=0;i<80;i++)
 	{
 		if(tempStation2[i][0] != 0)
-			printf("S[%i]: ",i+1);
+			fprintf(pFile,"S[%i]: ",i+1);
 		for(int j=0;j<80;j++)
 		{
 			if(tempStation2[i][j]  != 0)
-				printf("%i ",tempStation2[i][j]);
+				fprintf(pFile,"%i ",tempStation2[i][j]);
 				//tempStation2[i][j] = tempStation[i][j];
 		}
-		printf("  ");
+		fprintf(pFile,"  ");
 	}
 }
 void setStations()
@@ -66,11 +157,10 @@ void setStations()
 // DONE
 Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
-	Nodeg nodesGlobal1[100];
     //printf("Building Map: NTask: %i\n",nTask);
     int i = 0,ii=0,j=0;
     int iji;
-    for(int ij=0;ij<200-1;ij++)
+    for(int ij=0;ij<600-1;ij++)
     {
         if(ij < nTask)
         {
@@ -85,6 +175,7 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
         }
         nodesGlobal[ij].totalNext = 0;
         nodesGlobal[ij].totalPrev = 0;
+        nodesGlobal[ij].followingTasks = 0;
 
         for(iji=0;iji<100;iji++)
         {
@@ -152,19 +243,6 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
 
         }
-        /*if(j != 0)
-        {
-        	int nexti = 0;
-
-			while(nodesGlobal[i-1].next[nexti] != 0)
-			{
-				//printf("Checking nodes[%i-1]: %i\n",i,nodes[i-1].next[nexti]);
-				nexti++;
-			}
-        }*/
-        //if(j != 0)
-        	//nodesGlobal[i-1].next[nexti] = j;
-        //printf("[%i] Final nodes[%i-1]: %i  j: %i\n",ii,ii,nodes[i-1].next[nexti],j);
 
         if(i == -1)
         	break;
@@ -174,40 +252,36 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
     // Iterate once more to set previous tasks
     int tempPrev = 0;
+    int totalPrev = 0;
+    int totalNext = 0;
+    int tempNextj=0;
     for(int p_i = 0;p_i<nTask;p_i++)
     {
+    	totalNext = 0;
+    	tempNextj=0;
     	tempPrev = 0;
-    	for(int p_j = 0;p_j<nTask;p_j++)
+    	totalPrev = 0;
+    	for(int p_j = 0;p_j<100;p_j++)
     	{
+
     		if(nodesGlobal[p_i].next[p_j] != 0)
     		{
+    			//tempNextj = nodesGlobal[p_i].next[totalNext];
+    			//totalPrev =
     			tempPrev = nodesGlobal[nodesGlobal[p_i].next[p_j]-1].totalPrev;
     			nodesGlobal[nodesGlobal[p_i].next[p_j]-1].prev[tempPrev] = nodesGlobal[p_i].id;
     			nodesGlobal[nodesGlobal[p_i].next[p_j]-1].totalPrev += 1;
-    			//tempPrev++;
     		}
+
     	}
     }
 
+    // Find following tasks
+    if(setRule == 3 || setRule == 4)
+    	nextNode(1,0);
 
-    /*int boolHasNext = 0;
-    for(int testi=0;testi<nTask;testi++)
-    {
-    	boolHasNext = 0;
-    	for(int testj=0;testj<100;testj++)
-    	{
-    		if(nodesGlobal[testi].next[testj] != 0)
-    		{
-    			//printf("ID: %i Next: %i [%i][%i]\n",nodesGlobal[testi].id,nodesGlobal[testi].next[testj],testi,testj);
-    			boolHasNext = 1;
-    		}
-    		/*if(nodesGlobal[testi].prev[testj] != 0)
-    			printf("   Prev: %i \n",nodesGlobal[testi].prev[testj]);
 
-    	}
-    	if(boolHasNext == 0)
-    		printf("ID: %i Next: None \n",nodesGlobal[testi].id);
-    }*/
+
 
     Nodeg nodess[10];
     return nodess;
@@ -219,7 +293,7 @@ int findSolution(int m, int c,int rule,int nTask)
 	//printf("inside find solution");
 
 	int totalStart=0;
-	int nextNodes[200];
+	int nextNodes[600];
 	int totalNext = 0;
 	short firstRun = 1;
 	int counter = 0;
@@ -228,12 +302,17 @@ int findSolution(int m, int c,int rule,int nTask)
 	int stationCount = 0;
 	int totalStations=1;
 	int totalNodesInStation = 0;
-	int nodesDone[200];
+	int nodesDone[600];
 	int totalDone = 0;
 	short doneFound;
 	int totalIdle = 0;
 	int tempCycle = 0;
 	int nextNodePick;
+	int mftNode,lftNode,ft,mft,lft;
+	int miftNode,liftNode,tn,mift,lift;
+	float highPriority=0;
+	int highPriorityNode;
+
 	for(int i=0;i<80;i++)
 	{
 		for(int j=0;j<80;j++)
@@ -243,16 +322,20 @@ int findSolution(int m, int c,int rule,int nTask)
 	}
 
 	// zero nextNodes
-	for(int zeroing=0;zeroing<200;zeroing++)
+	for(int zeroing=0;zeroing<600;zeroing++)
 	{
-		if(zeroing < 200)
+		if(zeroing < 600)
 			nextNodes[zeroing] = 0;
 		nodesDone[zeroing] = 0;
 	}
 
-	// The good stuff
+
 	min = 9999;
 	max = 0;
+	lft = 9999;
+	mft = 0;
+	lift = 9999;
+	mift = 0;
 	for(int i=0;i<nTask;i++)
 	{
 		if(nodesGlobal[i].totalPrev == 0)
@@ -269,6 +352,10 @@ int findSolution(int m, int c,int rule,int nTask)
 	{
 		min = 9999;
 		max = 0;
+		lft = 9999;
+		mft = 0;
+		lift = 9999;
+		mift = 0;
 		doneFound = 0;
 		if(firstRun == 1)
 		{
@@ -278,9 +365,11 @@ int findSolution(int m, int c,int rule,int nTask)
 		}
 
 		short panicCounter = 0;
-		for(int i=0;i<200;i++)
+		for(int i=0;i<600;i++)
 		{
 			tempTasktime = nodesGlobal[nextNodes[i]-1].taskTime;
+			ft = nodesGlobal[nextNodes[i]-1].followingTasks;
+			tn = nodesGlobal[nextNodes[i]-1].totalNext;
 			if(tempTasktime == 0)
 			{
 				panicCounter++;
@@ -299,6 +388,36 @@ int findSolution(int m, int c,int rule,int nTask)
 				max = tempTasktime;
 				maxNode = nodesGlobal[nextNodes[i]-1].id;
 			}
+			if(ft >= mft)
+			{
+				mft = ft;
+				mftNode = nodesGlobal[nextNodes[i]-1].id;
+			}
+			if(ft < lft)
+			{
+				lft = ft;
+				lftNode = nodesGlobal[nextNodes[i]-1].id;
+			}
+			if(tn > mift)
+			{
+				mift = tn;
+				miftNode = nodesGlobal[nextNodes[i]-1].id;
+
+			}
+			if(tn < lift)
+			{
+				lift = tn;
+				liftNode = nodesGlobal[nextNodes[i]-1].id;
+			}
+
+			if(setRule == 8 || i < nTask)
+			{
+				if(highPriority < xTable[nodesGlobal[nextNodes[i]-1].id - 1])
+				{
+					highPriority = xTable[nodesGlobal[nextNodes[i]-1].id - 1];
+					highPriorityNode = nodesGlobal[nextNodes[i]-1].id;
+				}
+			}
 		}
 		int ii=0;
 
@@ -307,6 +426,16 @@ int findSolution(int m, int c,int rule,int nTask)
 			nextNodePick = maxNode;
 		else if(setRule == 2)
 			nextNodePick = minNode;
+		else if(setRule == 3)
+			nextNodePick = mftNode;
+		else if(setRule == 4)
+			nextNodePick = lftNode;
+		else if(setRule == 5)
+			nextNodePick = miftNode;
+		else if(setRule == 6)
+			nextNodePick = liftNode;
+		else if(setRule == 8)
+			nextNodePick = highPriority;
 		for(int k =0;k<nTask;k++)
 		{
 			if(nextNodes[k] == nextNodePick)
@@ -401,7 +530,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
 
     int nTask = atoi(array[0]);
-    int taskTime[100];
+    int taskTime[2000];
     int taskTimeCounter = 0,taskTimeSum = 0,taskTimeMax = 0;
     int tempSolution = -1;
     int lbc,c;
@@ -411,6 +540,11 @@ void alpbe(int mmin,int mmax, char * array[])
     int idle = -2;
     m = mmin;
     int bm,bc;
+    double bcpu;
+    clock_t start, end;
+    double cpu_time_used;
+    start = clock();
+
     //printf("inside alpbe2 nTask:%s",array[0]);
     // Place task times into taskTime array, starting from 0
     for(int i=1;i<=nTask;i++)
@@ -422,7 +556,13 @@ void alpbe(int mmin,int mmax, char * array[])
     }
     taskTime[taskTimeCounter] = -1;
     taskTimeCounter =0;
-    buildMap(array,taskTime,nTask);
+    if(strcmp(currentGraph,previousGraph) || firstBuild == 1)
+    {
+    	buildMap(array,taskTime,nTask);
+    	firstBuild = 0;
+    }
+    strcpy(previousGraph,currentGraph);
+
     while(taskTime[taskTimeCounter] != -1)
     {
         //printf("Task Time[%i]: %i",taskTimeCounter,taskTime[taskTimeCounter]);
@@ -461,6 +601,8 @@ void alpbe(int mmin,int mmax, char * array[])
 
 		//printf("Found solution: m: %i  c: %i  idle: %i\n",i,c,tempSolution);
         // Print out only best solution
+
+        // idle == -2 is the first iteration needed to initialize
 		if(idle == -2)
 		{
        		idle = tempSolution;
@@ -473,16 +615,20 @@ void alpbe(int mmin,int mmax, char * array[])
 			idle = tempSolution;
 			bm = i;
 			bc = c;
+			globalM = bm;
+			globalC = bc;
 			setStations();
 		}
 
 
 
     }
+    end = clock();
+    bcpu = ((double) (end - start)) / CLOCKS_PER_SEC;
     //printf("Best Solution: m: %i  c: %i  idle: %i\n",bm,bc,idle);
-    printf("%i \t%i \t%i \tcpu \t ",idle,bm,bc);
+    fprintf(pFile,"%i \t%i \t%i \t%.4f \t ",idle,bm,bc,bcpu);
     printStations();
-    printf("\n");
+    fprintf(pFile,"\n");
 
 
 }
@@ -499,18 +645,18 @@ void readFileLine(int option)
     int lineCount =0;
     char * previousGraph = "first";
 
-	printf("Parsing Station Ranges.. Rule: %i\n",setRule);
-	INPUT = "data-sets\\stations_range.txt";
+	fprintf(pFile,"Parsing Station Ranges.. Rule: %i\n",setRule);
+	INPUT_DIR = "data-sets\\stations_range.txt";
 
 
 
 
-    fp = fopen(INPUT, "r");
+    fp = fopen(INPUT_DIR, "r");
     if (fp == NULL)
         exit(EXIT_FAILURE);
 
 
-    printf("Prec. graph \tmMin \tmMax\tIdle*\tm*\tc*\tCPU\tTasks\n");
+    fprintf(pFile,"Prec. graph \tmMin \tmMax\tIdle*\tm*\tc*\tCPU\tTasks\n");
     while ((read = getline(&line, &len, fp)) != -1) {
         //printf("Retrieved line of length %zu:\n", read);
     	//if(lineCount>=1)
@@ -518,7 +664,7 @@ void readFileLine(int option)
 
         int i = 0;
         char *p = strtok (line, " \t");
-        char *array[1000];
+        char *array[2000];
 
 
         char *lineStore = &line;
@@ -545,9 +691,12 @@ void readFileLine(int option)
                     strcat(graphName,".IN2");
                     strcat(graphDirectory,graphName);
 
+                    strcpy(currentGraph,array[0]);
+
                     //char *graphDirectory = strcat(,graphName);
                     //printf("%s\n",graphDirectory); // Prints the path of the graph data
-                    printf("%s ",array[0]);
+                    printf("%s\t",array[0]);
+                    fprintf(pFile,"%s ",array[0]);
                     FILE * fp2;
                     char * line2 = NULL;
                     size_t len2 = 0;
@@ -556,11 +705,13 @@ void readFileLine(int option)
                     fp2 = fopen(graphDirectory, "r");
                     if (fp2 == NULL)
                     {
-                    	printf("\n");
+                    	fprintf(pFile,"\n");
+                    	printf("FAILED\n");
                         continue;
                     }else
                     {
-                    	printf("\t%i\t %i\t",atoi(array[1]),atoi(array[2]));
+                    	fprintf(pFile,"\t%i\t %i\t",atoi(array[1]),atoi(array[2]));
+                    	printf("OK\n");
                     }
                         //exit(EXIT_FAILURE);
 
@@ -590,7 +741,11 @@ void readFileLine(int option)
 
 
                     //printf("before alpbe");
-                    alpbe(atoi(array[1]),atoi(array[2]),array2);
+                    if(setRule != 6)
+                    	alpbe(atoi(array[1]),atoi(array[2]),array2);
+                    else{
+                    	vns(atoi(array[1]),atoi(array[2]),array2);
+                    }
                     //printf("\nread2 finished..Free array2 with ii: %i Graph: %s\n",ii,previousGraph);
 
 
@@ -601,6 +756,7 @@ void readFileLine(int option)
             //char *precedenceGraphName = array[0];
 
         lineCount++;
+        //sleep(1);
         //read only 5 lines for debug
         /*if(lineCount>5)
             break;*/
@@ -621,9 +777,9 @@ int main()
 
 	setbuf(stdout, NULL);
 
-	pFile=fopen("myfile.txt", "a");
 
-	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n");
+
+	printf("1. LTT\n2. STT\n3. MFT\n4. LFT\n5. MIFT\n6. LIFT\n8. VNS\n");
 	printf( "Option :");
     for(;;)
     {
@@ -632,15 +788,29 @@ int main()
 
         scanf("%d",&opt);
         setRule = opt;
+        if(setRule == 1)
+        	pFile=fopen("LTT.txt", "a");
+        else if(setRule == 2)
+			pFile=fopen("STT.txt", "a");
+        else if(setRule == 3)
+			pFile=fopen("MFT.txt", "a");
+        else if(setRule == 4)
+			pFile=fopen("LFT.txt", "a");
+        else if(setRule == 5)
+			pFile=fopen("MIFT.txt", "a");
+        else if(setRule == 6)
+			pFile=fopen("LIFT.txt", "a");
+        else if(setRule == 8)
+			pFile=fopen("VNS.txt", "a");
 
         readFileLine(opt);
         getchar();
-
-        printf( "Option :");
+        fclose(pFile);
+        printf( "\nOption :");
 
     }
 
-    fclose(pFile);
+
     return 0;
 
 }

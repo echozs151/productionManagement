@@ -49,6 +49,7 @@ float xTable2[70];
 short firstBuild = 1;
 int globalM,globalC;
 
+// Used for Following task priority
 int previousNode(int node,int followed,int jump)
 {
 	int i;
@@ -65,6 +66,7 @@ int previousNode(int node,int followed,int jump)
 	return jump+1;
 }
 
+// Used for Following task priority
 int nextNode(int node,int followed)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
@@ -87,7 +89,8 @@ int nextNode(int node,int followed)
 	//printf("Node %i Followed %i\n",node,followed);
 	return followed;
 }
-
+// Prints the stations that were calculated
+// Print is targeted to the output file
 void printStations()
 {
 	int i,j;
@@ -104,6 +107,8 @@ void printStations()
 		fprintf(pFile,"  ");
 	}
 }
+
+// Initialize arrays holding stations with 0
 void setStations()
 {
 	int i,j;
@@ -125,7 +130,7 @@ void setStations()
 
 }
 
-// DONE
+// Create a map with precedence requirements
 void buildMap(char * array[],int  taskTime[],int nTask){
 
     //printf("Building Map: NTask: %i\n",nTask);
@@ -318,7 +323,7 @@ int findSolution(int m, int c,int rule,int nTask)
 
 	}
 
-	// Here we gather info from all the nodes
+	// gather info from all the nodes
 	while(totalNext != 0)
 	{
 		min = 9999;
@@ -411,6 +416,7 @@ int findSolution(int m, int c,int rule,int nTask)
 		int k;
 		for(k =0;k<nTask;k++)
 		{
+			// Search nextNode within nextNodes to remove it and update statistics
 			if(nextNodes[k] == nextNodePick)
 			{
 				tempStation[totalStations-1][stationCount] = nextNodePick;
@@ -559,7 +565,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
 
 
-	
+	// Algorithm's steps
     for(i=m;i<=mmax;i++)
     {
     	//printf("Iteration: %i\n",i);
@@ -610,6 +616,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
 }
 
+// Implementation of the VNS priority
 void vns(int mmin,int mmax, char * array[])
 {
 	int r;
@@ -695,7 +702,7 @@ const char *readLine(FILE *file) {
     return constLine;
 }
 
-
+// Parse Files
 void readFileLine(int option)
 {
 
@@ -733,7 +740,7 @@ void readFileLine(int option)
         //printf("%s",line);
 		
         int i = 0;
-        char *p = strtok (line, " \t");
+        char *p = strtok (line, "ï¿½\t");
         char *array[2000];
         
         int maximumLineLength = 128;
@@ -756,7 +763,7 @@ void readFileLine(int option)
                     while (p != NULL)
                     {
                         array[i++] = p;
-                        p = strdup(strtok (NULL, " \t"));
+                        p = strdup(strtok (NULL, "ï¿½\t"));
                     }
                     //printf("%s \n",strupr(array[0]));
                     char graphDirectory[100] = "data-sets\\precedence graphs\\";

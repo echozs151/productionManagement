@@ -1,0 +1,305 @@
+[Project]
+FileName=ProductionManagement.dev
+Name=ProductionManagement
+Type=1
+Ver=2
+ObjFiles=
+Includes=
+Libs=
+PrivateResource=
+ResourceIncludes=
+MakeIncludes=
+Compiler=
+CppCompiler=
+Linker=
+IsCpp=0
+Icon=
+ExeOutput=
+ObjectOutput=
+LogOutput=
+LogOutputEnabled=0
+OverrideOutput=0
+OverrideOutputName=
+HostApplication=
+UseCustomMakefile=0
+CustomMakefile=
+CommandLine=
+Folders=Assignment,data-sets,"data-sets/precedence graphs"
+IncludeVersionInfo=0
+SupportXPThemes=0
+CompilerSet=0
+CompilerSettings=0000000000000000001000000
+UnitCount=28
+
+[VersionInfo]
+Major=1
+Minor=0
+Release=0
+Build=0
+LanguageID=1033
+CharsetID=1252
+CompanyName=
+FileVersion=1.0.0.0
+FileDescription=Developed using the Dev-C++ IDE
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+AutoIncBuildNr=0
+SyncProduct=1
+
+[Unit1]
+FileName=.cproject
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit2]
+FileName=.gitignore
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit3]
+FileName=.project
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit4]
+FileName=main.c
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit6]
+FileName=README.md
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit7]
+FileName=data-sets\stations_range.txt
+Folder=data-sets
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit5]
+FileName=ProductionManagement.layout
+Folder=
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit8]
+FileName=data-sets\precedence graphs\BOWMAN8.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit9]
+FileName=data-sets\precedence graphs\BUXEY.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit10]
+FileName=data-sets\precedence graphs\GUNTHER.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit11]
+FileName=data-sets\precedence graphs\HAHN.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit12]
+FileName=data-sets\precedence graphs\HESKIA.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit13]
+FileName=data-sets\precedence graphs\JACKSON.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit14]
+FileName=data-sets\precedence graphs\JAESCHKE.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit15]
+FileName=data-sets\precedence graphs\KILBRID.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit16]
+FileName=data-sets\precedence graphs\LUTZ1.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit17]
+FileName=data-sets\precedence graphs\LUTZ2.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit18]
+FileName=data-sets\precedence graphs\LUTZ3.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit19]
+FileName=data-sets\precedence graphs\MANSOOR.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit20]
+FileName=data-sets\precedence graphs\MERTENS.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit21]
+FileName=data-sets\precedence graphs\MITCHELL.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit22]
+FileName=data-sets\precedence graphs\MUKHERJE.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit23]
+FileName=data-sets\precedence graphs\README.docx
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit24]
+FileName=data-sets\precedence graphs\ROSZIEG.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit25]
+FileName=data-sets\precedence graphs\SAWYER30.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit26]
+FileName=data-sets\precedence graphs\TONGE70.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit27]
+FileName=data-sets\precedence graphs\WARNECKE.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit28]
+FileName=data-sets\precedence graphs\WEE-MAG.IN2
+Folder=data-sets/precedence graphs
+Compile=0
+Link=0
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+

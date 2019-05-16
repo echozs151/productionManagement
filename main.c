@@ -10,6 +10,18 @@
 
 //#include <C:\Users\ECHOZS\Desktop\data\bin\parse.c>
 
+int previousNode(int node,int followed,int jump);
+int nextNode(int node,int followed);
+void printStations();
+void setStations();
+void buildMap(char * array[],int  taskTime[],int nTask);
+int findSolution(int m, int c,int rule,int nTask);
+void alpbe(int mmin,int mmax, char * array[]);
+void vns(int mmin,int mmax, char * array[]);
+const char *readLine(FILE *file);
+void readFileLine(int option);
+
+
 typedef struct
 {
     int next[100];
@@ -37,13 +49,13 @@ float xTable2[70];
 short firstBuild = 1;
 int globalM,globalC;
 
-// Used for Following task priority
 int previousNode(int node,int followed,int jump)
 {
+	int i;
 	Nodeg nodeg = nodesGlobal[node-1];
 	int totalPrev = nodeg.totalPrev;
 
-	for(int i=0;i<totalPrev;i++)
+	for(i=0;i<totalPrev;i++)
 	{
 		previousNode(nodeg.prev[i],followed+1,followed-1);
 	}
@@ -53,12 +65,12 @@ int previousNode(int node,int followed,int jump)
 	return jump+1;
 }
 
-// Used for Following task priority
 int nextNode(int node,int followed)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
 
 	int totalNext = nodeg.totalNext;
+	int i;
 
 
 	if(totalNext == 0){
@@ -67,7 +79,7 @@ int nextNode(int node,int followed)
 		previousNode(node,0,followed);
 	}
 
-	for(int i=0;i<totalNext;i++)
+	for(i=0;i<totalNext;i++)
 	{
 		nextNode(nodeg.next[i],followed+1);
 	}
@@ -76,59 +88,14 @@ int nextNode(int node,int followed)
 	return followed;
 }
 
-void vns(int mmin,int mmax, char * array[])
-{
-	int r;
-	int k;
-	int totalJobs,i;
-	int nm,nc;
-	int counter= 0;
-	int nTask = atoi(array[0]);
-	int kmax = nTask;
-	totalJobs = 10;
-	// step 1
-	for(i=0;i<=totalJobs;i++)
-	{
-		int num = (rand() %  (100 + 1));
-		float randomValue =  (float)num / 100;
-		xTable[i] = randomValue;
-		if(i==totalJobs)
-			xTable[i] = -1;
-	}
-	i = 0;
-	//srand(time(0));
-	while(xTable[i] != -1)
-	{
-		printf("Num: %i %f\n",i,xTable[i]);
-		i++;
-	}
-
-
-	// step 2
-	while(counter < totalJobs)
-	{
-
-		alpbe(mmin,mmax,array);
-		k = 1;
-		while(k != kmax)
-		{
-
-
-		}
-		counter++;
-	}
-
-}
-
-// Prints the stations that were calculated
-// Print is targeted to the output file
 void printStations()
 {
-	for(int i=0;i<80;i++)
+	int i,j;
+	for(i=0;i<80;i++)
 	{
 		if(tempStation2[i][0] != 0)
 			fprintf(pFile,"S[%i]: ",i+1);
-		for(int j=0;j<80;j++)
+		for(j=0;j<80;j++)
 		{
 			if(tempStation2[i][j]  != 0)
 				fprintf(pFile,"%i ",tempStation2[i][j]);
@@ -137,20 +104,19 @@ void printStations()
 		fprintf(pFile,"  ");
 	}
 }
-
-// Initialize arrays holding stations with 0
 void setStations()
 {
-	for(int i=0;i<80;i++)
+	int i,j;
+	for(i=0;i<80;i++)
 	{
-		for(int j=0;j<80;j++)
+		for(j=0;j<80;j++)
 		{
 			tempStation2[i][j] = 0;
 		}
 	}
-	for(int i=0;i<80;i++)
+	for(i=0;i<80;i++)
 	{
-		for(int j=0;j<80;j++)
+		for(j=0;j<80;j++)
 		{
 			tempStation2[i][j] = tempStation[i][j];
 			tempStation[i][j] = 0;
@@ -159,13 +125,14 @@ void setStations()
 
 }
 
-// Create a map with precedence requirements
-Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
+// DONE
+void buildMap(char * array[],int  taskTime[],int nTask){
 
     //printf("Building Map: NTask: %i\n",nTask);
     int i = 0,ii=0,j=0;
+    int ij;
     int iji;
-    for(int ij=0;ij<600-1;ij++)
+    for(ij=0;ij<600-1;ij++)
     {
         if(ij < nTask)
         {
@@ -196,6 +163,7 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
     short PrintIj = 0;
     while(i != -1)
     {
+        //printf("Are we here?");
         char *token;
         char tempString[200];
         strcpy(tempString,array[ii]);
@@ -259,13 +227,14 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
     int totalPrev = 0;
     int totalNext = 0;
     int tempNextj=0;
-    for(int p_i = 0;p_i<nTask;p_i++)
+    int p_i,p_j;
+    for(p_i = 0;p_i<nTask;p_i++)
     {
     	totalNext = 0;
     	tempNextj=0;
     	tempPrev = 0;
     	totalPrev = 0;
-    	for(int p_j = 0;p_j<100;p_j++)
+    	for(p_j = 0;p_j<100;p_j++)
     	{
 
     		if(nodesGlobal[p_i].next[p_j] != 0)
@@ -287,8 +256,6 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
 
 
-    Nodeg nodess[10];
-    return nodess;
 }
 
 // Apply the rest rules. Output stations with nodes
@@ -316,17 +283,17 @@ int findSolution(int m, int c,int rule,int nTask)
 	int miftNode,liftNode,tn,mift,lift;
 	float highPriority=0;
 	int highPriorityNode;
-
-	for(int i=0;i<80;i++)
+	int i,j,zeroing;
+	for( i=0;i<80;i++)
 	{
-		for(int j=0;j<80;j++)
+		for(j=0;j<80;j++)
 		{
 			tempStation[i][j] = 0;
 		}
 	}
 
 	// zero nextNodes
-	for(int zeroing=0;zeroing<600;zeroing++)
+	for(zeroing=0;zeroing<600;zeroing++)
 	{
 		if(zeroing < 600)
 			nextNodes[zeroing] = 0;
@@ -340,7 +307,7 @@ int findSolution(int m, int c,int rule,int nTask)
 	mft = 0;
 	lift = 9999;
 	mift = 0;
-	for(int i=0;i<nTask;i++)
+	for(i=0;i<nTask;i++)
 	{
 		if(nodesGlobal[i].totalPrev == 0)
 		{
@@ -351,7 +318,7 @@ int findSolution(int m, int c,int rule,int nTask)
 
 	}
 
-	//  gather info from all the nodes
+	// Here we gather info from all the nodes
 	while(totalNext != 0)
 	{
 		min = 9999;
@@ -369,7 +336,8 @@ int findSolution(int m, int c,int rule,int nTask)
 		}
 
 		short panicCounter = 0;
-		for(int i=0;i<600;i++)
+		int i;
+		for( i=0;i<600;i++)
 		{
 			tempTasktime = nodesGlobal[nextNodes[i]-1].taskTime;
 			ft = nodesGlobal[nextNodes[i]-1].followingTasks;
@@ -414,7 +382,6 @@ int findSolution(int m, int c,int rule,int nTask)
 				liftNode = nodesGlobal[nextNodes[i]-1].id;
 			}
 
-			// VNS high priority node
 			if(setRule == 8 || i < nTask)
 			{
 				if(highPriority < xTable[nodesGlobal[nextNodes[i]-1].id - 1])
@@ -441,10 +408,9 @@ int findSolution(int m, int c,int rule,int nTask)
 			nextNodePick = liftNode;
 		else if(setRule == 8)
 			nextNodePick = highPriority;
-
-		for(int k =0;k<nTask;k++)
+		int k;
+		for(k =0;k<nTask;k++)
 		{
-			// Search nextNode within nextNodes to remove it and update statistics
 			if(nextNodes[k] == nextNodePick)
 			{
 				tempStation[totalStations-1][stationCount] = nextNodePick;
@@ -477,9 +443,8 @@ int findSolution(int m, int c,int rule,int nTask)
 		short emptyl = -1;
 		short doneFound1;
 		int sumPrevious;
-
-		// search for new next nodes
-		for(int k =0;k<nodesGlobal[nextNodePick-1].totalNext;k++)
+		int prevDone;
+		for(k =0;k<nodesGlobal[nextNodePick-1].totalNext;k++)
 		{
 			doneFound1 = 0;
 			sumPrevious = 0;
@@ -487,9 +452,10 @@ int findSolution(int m, int c,int rule,int nTask)
 			if(nodesGlobal[nodesGlobal[nextNodePick-1].next[k]-1].totalPrev != 0)
 			{
 				// iterate next node's previous nodes. make sure all of them are done
-				for(int prevDone=0;prevDone<nodesGlobal[nodesGlobal[nextNodePick-1].next[k]-1].totalPrev;prevDone++)
+				for(prevDone=0;prevDone<nodesGlobal[nodesGlobal[nextNodePick-1].next[k]-1].totalPrev;prevDone++)
 				{
-					for(int dNode=0;dNode<totalDone;dNode++)
+					int dNode;
+					for(dNode=0;dNode<totalDone;dNode++)
 					{
 						if(nodesGlobal[nodesGlobal[nextNodePick-1].next[k]-1].prev[prevDone] == nodesDone[dNode])
 						{
@@ -505,7 +471,8 @@ int findSolution(int m, int c,int rule,int nTask)
 			if(doneFound1 == 0)
 				continue;
 			// Find free position to place next node
-			for(int l=0;l<200;l++)
+			int l;
+			for(l=0;l<200;l++)
 			{
 				if(nextNodes[l] == 0)
 				{
@@ -556,7 +523,8 @@ void alpbe(int mmin,int mmax, char * array[])
 
     //printf("inside alpbe2 nTask:%s",array[0]);
     // Place task times into taskTime array, starting from 0
-    for(int i=1;i<=nTask;i++)
+    int i;
+    for(i=1;i<=nTask;i++)
     {
 
     	//printf("i:%i",i);
@@ -591,8 +559,8 @@ void alpbe(int mmin,int mmax, char * array[])
 
 
 
-	// Algorithm's steps
-    for(int i=m;i<=mmax;i++)
+	
+    for(i=m;i<=mmax;i++)
     {
     	//printf("Iteration: %i\n",i);
     	tempSolution = -1;
@@ -602,7 +570,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
         while(tempSolution == -1)
         {
-        	tempSolution = findSolution(i,c,1,nTask); // finds a solution. update if better
+        	tempSolution = findSolution(i,c,1,nTask);
         	if(tempSolution == -1)
         		c++;
 
@@ -642,14 +610,99 @@ void alpbe(int mmin,int mmax, char * array[])
 
 }
 
-// File Parsing
+void vns(int mmin,int mmax, char * array[])
+{
+	int r;
+	int k;
+	int totalJobs,i;
+	int nm,nc;
+	int counter= 0;
+	int nTask = atoi(array[0]);
+	int kmax = nTask;
+	totalJobs = 10;
+	// step 1
+	for(i=0;i<=totalJobs;i++)
+	{
+		int num = (rand() %  (100 + 1));
+		float randomValue =  (float)num / 100;
+		xTable[i] = randomValue;
+		if(i==totalJobs)
+			xTable[i] = -1;
+	}
+	i = 0;
+	//srand(time(0));
+	while(xTable[i] != -1)
+	{
+		printf("Num: %i %f\n",i,xTable[i]);
+		i++;
+	}
+
+
+	// step 2
+	while(counter < totalJobs)
+	{
+
+		alpbe(mmin,mmax,array);
+		k = 1;
+		while(k != kmax)
+		{
+
+
+		}
+		counter++;
+	}
+
+}
+
+const char *readLine(FILE *file) {
+
+    if (file == NULL) {
+        printf("Error: file pointer is null.");
+        exit(1);
+    }
+
+    int maximumLineLength = 128;
+    char *lineBuffer = (char *)malloc(sizeof(char) * maximumLineLength);
+
+    if (lineBuffer == NULL) {
+        printf("Error allocating memory for line buffer.");
+        exit(1);
+    }
+
+    char ch = getc(file);
+    int count = 0;
+
+    while ((ch != '\n') && (ch != EOF)) {
+        if (count == maximumLineLength) {
+            maximumLineLength += 128;
+            lineBuffer = realloc(lineBuffer, maximumLineLength);
+            if (lineBuffer == NULL) {
+                printf("Error reallocating space for line buffer.");
+                exit(1);
+            }
+        }
+        lineBuffer[count] = ch;
+        count++;
+
+        ch = getc(file);
+    }
+
+    lineBuffer[count] = '\0';
+    char line[count + 1];
+    strncpy(line, lineBuffer, (count + 1));
+    free(lineBuffer);
+    const char *constLine = line;
+    return constLine;
+}
+
+
 void readFileLine(int option)
 {
 
     //char *input = "C:\\Users\\ECHOZS\\Desktop\\data\\bin\\ProjMng_Project\\data\\10_jobs_(manning).txt";
 
     FILE * fp;
-    char * line = NULL;
+    char line[256];
     size_t len = 0;
     ssize_t read;
     int lineCount =0;
@@ -658,27 +711,39 @@ void readFileLine(int option)
 	fprintf(pFile,"Parsing Station Ranges.. Rule: %i\n",setRule);
 	INPUT_DIR = "data-sets\\stations_range.txt";
 
+	
 
 
 
     fp = fopen(INPUT_DIR, "r");
-    if (fp == NULL)
-        exit(EXIT_FAILURE);
+    //readLine(fp);
+    if (fp == NULL){
+    	printf("Failed");
+    	exit(EXIT_FAILURE);
+	}
+    
+    
 
 
     fprintf(pFile,"Prec. graph \tmMin \tmMax\tIdle*\tm*\tc*\tCPU\tTasks\n");
-    while ((read = getline(&line, &len, fp)) != -1) {
+    //while ((read = getline(&line, &len, fp)) != -1) {
+    while (fgets(line, sizeof line, fp)) {
         //printf("Retrieved line of length %zu:\n", read);
     	//if(lineCount>=1)
         //printf("%s",line);
-
+		
         int i = 0;
-        char *p = strtok (line, "ï¿½\t");
+        char *p = strtok (line, " \t");
         char *array[2000];
+        
+        int maximumLineLength = 128;
+    	char *lineBuffer = (char *)malloc(sizeof(char) * maximumLineLength);
+		if (lineBuffer == NULL) {
+	        printf("Error allocating memory for line buffer.");
+	        exit(1);
+	    }
 
-
-        char *lineStore = &line;
-
+        //char *lineStore = &line;
 
             //Manning
 
@@ -691,7 +756,7 @@ void readFileLine(int option)
                     while (p != NULL)
                     {
                         array[i++] = p;
-                        p = strdup(strtok (NULL, "ï¿½\t"));
+                        p = strdup(strtok (NULL, " \t"));
                     }
                     //printf("%s \n",strupr(array[0]));
                     char graphDirectory[100] = "data-sets\\precedence graphs\\";
@@ -708,7 +773,7 @@ void readFileLine(int option)
                     printf("%s\t",array[0]);
                     fprintf(pFile,"%s ",array[0]);
                     FILE * fp2;
-                    char * line2 = NULL;
+                    char line2[256];
                     size_t len2 = 0;
                     ssize_t read2;
 
@@ -731,7 +796,8 @@ void readFileLine(int option)
                     array2 = malloc(len * sizeof(char*)+2048);
                     int ii = 0;
                     //if(!strcmp(graphName,previousGraph) ){
-						while ((read2 = getline(&line2, &len2, fp2)) != -1) {
+						//while ((read2 = getline(&line2, &len2, fp2)) != -1) {
+						while (fgets(line2, sizeof line2, fp2)) {
 							//printf("%s",line2); // Print line individually
 							//printf("/t-->%s\n", line2);
 
@@ -746,8 +812,7 @@ void readFileLine(int option)
 
                     //double totalNodes = atoi(array2[0]);
                     fclose(fp2);
-                    if (line2)
-						free(line2);
+                    
 
 
                     //printf("before alpbe");
@@ -785,7 +850,7 @@ int main()
 
 
 
-	setbuf(stdout, NULL);
+	//setbuf(stdout, NULL);
 
 
 
@@ -812,6 +877,8 @@ int main()
 			pFile=fopen("LIFT.txt", "a");
         else if(setRule == 8)
 			pFile=fopen("VNS.txt", "a");
+
+		printf("%i",opt);
 
         readFileLine(opt);
         getchar();

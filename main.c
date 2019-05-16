@@ -37,6 +37,7 @@ float xTable2[70];
 short firstBuild = 1;
 int globalM,globalC;
 
+// Used for Following task priority
 int previousNode(int node,int followed,int jump)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
@@ -52,6 +53,7 @@ int previousNode(int node,int followed,int jump)
 	return jump+1;
 }
 
+// Used for Following task priority
 int nextNode(int node,int followed)
 {
 	Nodeg nodeg = nodesGlobal[node-1];
@@ -118,7 +120,8 @@ void vns(int mmin,int mmax, char * array[])
 
 }
 
-
+// Prints the stations that were calculated
+// Print is targeted to the output file
 void printStations()
 {
 	for(int i=0;i<80;i++)
@@ -134,6 +137,8 @@ void printStations()
 		fprintf(pFile,"  ");
 	}
 }
+
+// Initialize arrays holding stations with 0
 void setStations()
 {
 	for(int i=0;i<80;i++)
@@ -154,7 +159,7 @@ void setStations()
 
 }
 
-// DONE
+// Create a map with precedence requirements
 Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
 
     //printf("Building Map: NTask: %i\n",nTask);
@@ -191,7 +196,6 @@ Nodeg* buildMap(char * array[],int  taskTime[],int nTask){
     short PrintIj = 0;
     while(i != -1)
     {
-        //printf("Are we here?");
         char *token;
         char tempString[200];
         strcpy(tempString,array[ii]);
@@ -347,7 +351,7 @@ int findSolution(int m, int c,int rule,int nTask)
 
 	}
 
-	// Here we gather info from all the nodes
+	//  gather info from all the nodes
 	while(totalNext != 0)
 	{
 		min = 9999;
@@ -410,6 +414,7 @@ int findSolution(int m, int c,int rule,int nTask)
 				liftNode = nodesGlobal[nextNodes[i]-1].id;
 			}
 
+			// VNS high priority node
 			if(setRule == 8 || i < nTask)
 			{
 				if(highPriority < xTable[nodesGlobal[nextNodes[i]-1].id - 1])
@@ -436,8 +441,10 @@ int findSolution(int m, int c,int rule,int nTask)
 			nextNodePick = liftNode;
 		else if(setRule == 8)
 			nextNodePick = highPriority;
+
 		for(int k =0;k<nTask;k++)
 		{
+			// Search nextNode within nextNodes to remove it and update statistics
 			if(nextNodes[k] == nextNodePick)
 			{
 				tempStation[totalStations-1][stationCount] = nextNodePick;
@@ -470,6 +477,8 @@ int findSolution(int m, int c,int rule,int nTask)
 		short emptyl = -1;
 		short doneFound1;
 		int sumPrevious;
+
+		// search for new next nodes
 		for(int k =0;k<nodesGlobal[nextNodePick-1].totalNext;k++)
 		{
 			doneFound1 = 0;
@@ -582,7 +591,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
 
 
-
+	// Algorithm's steps
     for(int i=m;i<=mmax;i++)
     {
     	//printf("Iteration: %i\n",i);
@@ -593,7 +602,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
         while(tempSolution == -1)
         {
-        	tempSolution = findSolution(i,c,1,nTask);
+        	tempSolution = findSolution(i,c,1,nTask); // finds a solution. update if better
         	if(tempSolution == -1)
         		c++;
 
@@ -633,6 +642,7 @@ void alpbe(int mmin,int mmax, char * array[])
 
 }
 
+// File Parsing
 void readFileLine(int option)
 {
 
@@ -663,7 +673,7 @@ void readFileLine(int option)
         //printf("%s",line);
 
         int i = 0;
-        char *p = strtok (line, " \t");
+        char *p = strtok (line, "ï¿½\t");
         char *array[2000];
 
 
@@ -681,7 +691,7 @@ void readFileLine(int option)
                     while (p != NULL)
                     {
                         array[i++] = p;
-                        p = strdup(strtok (NULL, " \t"));
+                        p = strdup(strtok (NULL, "ï¿½\t"));
                     }
                     //printf("%s \n",strupr(array[0]));
                     char graphDirectory[100] = "data-sets\\precedence graphs\\";
